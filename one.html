@@ -1,2 +1,20 @@
-hyy.....Helloooooo
-kutftkuftkufk
+
+
+data send to next page:
+<form action="/new1" method="post">
+<input type="text" name="name" required>
+
+<td th:text="${name}"></td>
+
+
+	@PostMapping("/new1")
+	public String hy1(@RequestParam String name,@RequestParam String email,Model model ) {
+ 
+
+    // send data to next page
+    model.addAttribute("name", name);
+    model.addAttribute("email", email);
+
+    return "new";
+		
+	}
