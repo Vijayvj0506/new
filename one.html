@@ -18,3 +18,59 @@ data send to next page:
     return "new";
 		
 	}
+
+
+	Database connection:
+	Controller.java
+	@Autowired
+	private New_repo newrepo;
+	
+	@GetMapping("/")	
+	public String hy() {
+		return "index";
+	}
+	
+	@PostMapping("/new1")
+	public String hy1(@RequestParam String name,@RequestParam String email,Model model ) {
+		
+	new_model newmodel=new new_model();
+	
+	newmodel.setName(name);
+	newmodel.setEmail(email);
+	newrepo.save(newmodel);
+	
+ 
+	List<new_model> users=newrepo.findAll();
+    // send data to next page
+    model.addAttribute("users", users);
+    
+
+    return "new";
+		
+	}
+
+
+User.java(model):
+
+@Entity
+@Table(name = "puthusu")
+public class new_model {
+
+	@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String email;
+		
+REPO.java:
+public interface New_repo extends JpaRepository<new_model,Long> {
+
+}	
+
+new.html:
+    <tr th:each="u : ${users}">
+        <td th:text="${u.id}"></td>
+        <td th:text="${u.name}"></td>
+        <td th:text="${u.email}"></td>
+    </tr>	
