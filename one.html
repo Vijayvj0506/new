@@ -73,4 +73,72 @@ new.html:
         <td th:text="${u.id}"></td>
         <td th:text="${u.name}"></td>
         <td th:text="${u.email}"></td>
-    </tr>	
+    </tr>
+
+========================================================================================================
+EDIT DATA:
+new.html
+	       <td th:text="${u.email}"></td>
+                <td>
+            <a th:href="@{/edit/{id}(id=${u.id})}">
+                <button>Edit</button>
+            </a>
+edit.html
+<form action="/update" method="post">
+
+    <input type="hidden" name="id" th:value="${user.id}">
+
+    Name:
+    <input type="text" name="name" th:value="${user.name}">
+    <br><br>
+
+    Email:
+    <input type="text" name="email" th:value="${user.email}">
+    <br><br>
+
+    <button type="submit">Update</button>
+
+</form>	
+
+controller.java
+
+// 👉 OPEN EDIT PAGE
+    @GetMapping("/edit/{id}")
+    public String editUser(@PathVariable Long id, Model model) {
+
+        new_model user = newrepo.findById(id).get();
+        model.addAttribute("user", user);
+
+        return "edit";
+    }
+    
+    @PostMapping("/update")
+    public String updatedata(@RequestParam Long id,@RequestParam String name,@RequestParam String email,Model model) {
+    	
+    	new_model user=newrepo.findById(id).get();
+    	user.setName(name);
+    	user.setEmail(email);
+    	newrepo.save(user);
+    	
+    	model.addAttribute("users", newrepo.findAll());
+    	return "new";
+    }
+=====================================================================================================
+DELETE DATA:
+        <td>
+            <a th:href="@{/delete/{id}(id=${user.id})}"
+               onclick="return confirm('Are you sure?')">
+               Delete
+            </a>
+        </td>
+controller.java
+	// 👉 DELETE USER
+@GetMapping("/delete/{id}")
+public String deleteUser(@PathVariable Long id, Model model) {
+
+    newrepo.deleteById(id);   // delete from DB
+
+    model.addAttribute("users", newrepo.findAll()); // reload table
+    return "new";
+}
+
