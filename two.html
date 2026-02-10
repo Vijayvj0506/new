@@ -1,11 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+welcome.html
+signup.html
+login.html
+
+welcome.html
+    <h1>Welcome to My Project</h1>
+
+    <a href="/signup">
+        <button>Signup</button>
+    </a>
+
+    <a href="/login">
+        <button>Login</button>
+    </a>
+
+login.html
+<form action="/login" method="post">
+    Username: <input type="text" name="name"><br><br>
+    Password: <input type="text" name="password"><br><br>
+    <button type="submit">Login</button>
+</form>
+
+signup.html
+<form action="/signup" method="post">
+    Username: <input type="text" name="name"><br><br>
+    Password: <input type="text" name="password"><br><br>
+    <button type="submit">Signup</button>
+</form>
+
+Authmodel.java
+@Entity
+@Table(name="Authtable")
+public class Authmodel {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	private String name;
+	private String password;
+
+Auth_repo.java
+public interface Auth_repo extends JpaRepository<Authmodel, Long> {
+	Authmodel findByNameAndPassword(String name,String password);
+
+}
     
-</body>
-</html>
+Auth_controller.java
+@Controller
+public class Auth_controller {
+	
+	@Autowired
+	private Auth_repo Authrepo;
+	
+	@GetMapping("/")
+    public String welcome() {
+        return "welcome";
+    }
+
+    // Signup page
+    @GetMapping("/signup")
+    public String signupPage() {
+        return "signup";
+    }
+
+    @PostMapping("/signup")
+    public String signup(@RequestParam String name,
+                         @RequestParam String password) {
+
+        Authmodel user = new Authmodel();
+        user.setName(name);
+        user.setPassword(password);
+        Authrepo.save(user);
+
+        return "login";
+    }
+
+    // Login page
+    @GetMapping("/login")
+    public String loginPage() {
+        return "login";
+    }
+	
+    @PostMapping("/login")
+    public String login(@RequestParam String name,
+                        @RequestParam String password,
+                        Model model) {
+
+    	Authmodel user = Authrepo.findByNameAndPassword(name, password);
+
+        if (user != null) {
+            return "index"; // YOUR EXISTING PAGE
+        } else {
+            model.addAttribute("error", "Invalid Username or Password");
+            return "login";
+        }
+    }
+
+}
+
+Auth_controller.java
+
+    
