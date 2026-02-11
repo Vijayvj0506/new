@@ -97,7 +97,13 @@ public class Auth_controller {
 
 }
 
-bcrypt:	
+bcrypt:
+
+ependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-crypto</artifactId>
+</dependency>
+	
 auth_repo.java
 public interface Auth_repo extends JpaRepository<Authmodel, Long> {
 	Authmodel findByName(String name);	
