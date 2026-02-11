@@ -97,6 +97,53 @@ public class Auth_controller {
 
 }
 
-Auth_controller.java
+bcrypt:	
+auth_repo.java
+public interface Auth_repo extends JpaRepository<Authmodel, Long> {
+	Authmodel findByName(String name);	
 
     
+passwordconfig.java
+@Configuration
+public class PasswordConfig {
+	
+	
+	@Bean
+	public BCryptPasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+}
+
+Auth_controller.java
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
+
+   @PostMapping("/signup")
+    public String signup(@RequestParam String name,
+                         @RequestParam String password) {
+
+        Authmodel user = new Authmodel();
+        user.setName(name);
+        
+        String encodedPassword = passwordEncoder.encode(password);
+        user.setPassword(encodedPassword);
+        Authrepo.save(user);
+
+        return "login";
+    }
+
+@PostMapping("/login")
+    public String login(@RequestParam String name,
+                        @RequestParam String password,
+                        Model model) {
+
+    	Authmodel user = Authrepo.findByName(name);
+
+        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
+            return "index"; // YOUR EXISTING PAGE
+        } else {
+            model.addAttribute("error", "Invalid Username or Password");
+            return "login";
+        }
+    }	
