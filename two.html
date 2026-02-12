@@ -153,3 +153,80 @@ Auth_controller.java
             return "login";
         }
     }	
+
+
+=====================================================================================================================================================
+	Spring security:
+	What is Spring Security?
+
+Spring Security is a powerful framework that provides authentication and authorization to secure Spring Boot applications.
+
+Why use it?
+
+To protect URLs, encrypt passwords, manage sessions, and implement role-based access control.
+
+CustomUserDetailsService.java
+@Service 	 	
+public class CustomUserDetailsService implements UserDetailsService {
+		
+	@Autowired
+    private Auth_repo authRepo;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+        Authmodel user = authRepo.findByUsername(username);
+
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+
+        return User.builder()
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .roles("USER")   // default role
+                .build();
+    }
+}
+
+securityconfig.java
+
+@Configuration
+public class SecurityConfig {
+	
+	@Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http
+            .csrf(csrf -> csrf.disable())  // disable csrf for now
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/signup", "/login").permitAll()
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/index", true)
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutSuccessUrl("/")
+                .permitAll()
+            );
+
+        return http.build();
+    }}	
+	
+Authcontroller.java
+   @PostMapping("/signup")
+    public String signup(@RequestParam String username,
+                         @RequestParam String password) {
+
+        Authmodel user = new Authmodel();
+        user.setUsername(username);
+        
+        String encodedPassword = passwordEncoder.encode(password);
+        user.setPassword(encodedPassword);
+        Authrepo.save(user);
+
+        return "redirect:/login";
+    }	
