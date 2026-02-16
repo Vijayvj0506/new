@@ -1,1 +1,83 @@
+new_repo.java
+public interface new_repo extends JpaRepository<new_model,Long> {
 
+}
+
+new_service.java
+@Service
+public class new_service {
+
+	@Autowired
+    private new_repo newrepo;
+
+    // CREATE
+    public new_model createUser(new_model user) {
+        return newrepo.save(user);
+    }
+
+    // READ ALL
+    public List<new_model> getAllUsers() {
+        return newrepo.findAll();
+    }
+
+    // READ BY ID
+    public new_model getUserById(Long id) {
+        return newrepo.findById(id).orElse(null);
+    }
+
+    // UPDATE
+    public new_model updateUser(Long id, new_model userDetails) {
+        new_model user = getUserById(id);
+
+        user.setName(userDetails.getName());
+        user.setEmail(userDetails.getEmail());
+
+        return newrepo.save(user);
+    }
+
+    // DELETE
+    public void deleteUser(Long id) {
+        new_model user = getUserById(id);
+        newrepo.delete(user);
+    }
+}
+
+newcontroller.java
+@RestController
+@RequestMapping("/api/users")
+public class Newcontroller {
+	
+	@Autowired
+    private new_service service;
+
+    // CREATE
+    @PostMapping
+    public new_model createUser(@RequestBody new_model user) {
+        return service.createUser(user);
+    }
+
+    // READ ALL
+    @GetMapping
+    public List<new_model> getAllUsers() {
+        return service.getAllUsers();
+    }
+
+    // READ BY ID
+    @GetMapping("/{id}")
+    public new_model getUserById(@PathVariable Long id) {
+        return service.getUserById(id);
+    }
+
+    // UPDATE
+    @PutMapping("/{id}")
+    public new_model updateUser(@PathVariable Long id,
+                                @RequestBody new_model userDetails) {
+        return service.updateUser(id, userDetails);
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    public String deleteUser(@PathVariable Long id) {
+        service.deleteUser(id);
+        return "Deleted Successfully";
+    }
