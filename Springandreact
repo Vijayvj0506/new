@@ -1,3 +1,9 @@
+{
+    "name": "Vijay",
+    "email": "vijay@gmail.com"
+}
+
+
 new_repo.java
 public interface new_repo extends JpaRepository<new_model,Long> {
 
