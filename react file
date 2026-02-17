@@ -1,0 +1,233 @@
+npx create-react-app frontend
+cd frontend
+npm install axios react-router-dom bootstrap
+
+api.js
+import axios from "axios";
+
+const API = axios.create({
+  baseURL: "http://localhost:8081/api/users"
+});
+
+export default API;
+
+userlist.js
+import React, { useEffect, useState } from "react";
+import API from "../services/api";
+import { Link } from "react-router-dom";
+
+function UserList() {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    const res = await API.get("");
+    setUsers(res.data);
+  };
+
+  const deleteUser = async (id) => {
+    await API.delete(`/${id}`);
+ 
+    loadUsers();
+  };
+
+  return (
+    <div className="container mt-4">
+      <h2>User List</h2>
+
+      <Link to="/add" className="btn btn-primary mb-3">
+        Add User
+      </Link>
+
+      <table className="table table-bordered">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.id}>
+              <td>{user.id}</td>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
+              <td>
+                <Link
+                  to={`/edit/${user.id}`}
+                  className="btn btn-warning btn-sm me-2"
+                >
+                  Edit
+                </Link>
+
+                <button
+                  onClick={() => deleteUser(user.id)}
+                  className="btn btn-danger btn-sm"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default UserList;
+
+adduser.js
+import React, { useState } from "react";
+import API from "../services/api";
+import { useNavigate } from "react-router-dom";
+
+function AddUser() {
+  const [user, setUser] = useState({
+    name: "",
+    email: ""
+  });
+
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setUser({ ...user, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await API.post("", user);
+    navigate("/");
+  };
+
+  return (
+    <div className="container mt-4">
+      <h2>Add User</h2>
+
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <input
+            type="text"
+            name="name"
+            placeholder="Enter Name"
+            className="form-control"
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter Email"
+            className="form-control"
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <button className="btn btn-success">Save</button>
+      </form>
+    </div>
+  );
+}
+
+export default AddUser;
+
+edituser.js
+import React, { useEffect, useState } from "react";
+import API from "../services/api";
+import { useNavigate, useParams } from "react-router-dom";
+
+function EditUser() {
+  const [user, setUser] = useState({
+    name: "",
+    email: ""
+  });
+
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    const res = await API.get(`/${id}`);
+    setUser(res.data);
+  };
+
+  const handleChange = (e) => {
+    setUser({ ...user, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await API.put(`/${id}`, user);
+    navigate("/");
+  };
+
+  return (
+    <div className="container mt-4">
+      <h2>Edit User</h2>
+
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <input
+            type="text"
+            name="name"
+            value={user.name}
+            className="form-control"
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <input
+            type="email"
+            name="email"
+            value={user.email}
+            className="form-control"
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <button className="btn btn-primary">Update</button>
+      </form>
+    </div>
+  );
+}
+
+export default EditUser;
+
+app.js
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import UserList from "./components/UserList";
+import AddUser from "./components/AddUser";
+import EditUser from "./components/EditUser";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<UserList />} />
+        <Route path="/add" element={<AddUser />} />
+        <Route path="/edit/:id" element={<EditUser />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+
