@@ -1,0 +1,13 @@
+userlist.js
+ 
+ const [searchTerm, setSearchTerm] = useState("");
+   // 🔹 Filter users based on search
+  const filteredUsers = users.filter((user) => {
+    const name = user.name ? user.name.toLowerCase() : "";
+    const email = user.email ? user.email.toLowerCase() : "";
+    const search = searchTerm.toLowerCase();
+
+    return name.includes(search) || email.includes(search);
+  });
+
+   {filteredUsers.map((user) => (
