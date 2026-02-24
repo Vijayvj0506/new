@@ -78,3 +78,188 @@ userrepo.java
 @Repository
 public interface Userrepo extends JpaRepository<User,Long> {
 	Optional<User> findByEmail(String email);}
+
+cartservice.java
+@Service
+public class Cartservice {
+	@Autowired
+	private Cartrepo cartrepo;
+	@Autowired
+	private Productrepo productrepo;
+	@Autowired
+	private Userrepo userrepo;
+	
+	public Cart addToCart(Long userId, Long productId, int quantity) {
+		Optional<User> user = userrepo.findById(userId);
+        Optional<Product> product = productrepo.findById(productId);
+		if (user.isEmpty() || product.isEmpty()) {
+            throw new RuntimeException("User or Product not found");
+        }
+		Cart cart = new Cart();
+        cart.setUser(user.get());
+        cart.setProduct(product.get());
+        cart.setQuantity(quantity);
+		return cartrepo.save(cart);
+        }
+	public List<Cart> getCartByUser(Long userId) {
+		Optional<User> user = userrepo.findById(userId);
+		if (user.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+		return cartrepo.findByUser(user.get());
+        }
+	public double checkout(Long userId) {
+		List<Cart> cartItems = getCartByUser(userId);
+		double total = 0;
+		for (Cart item : cartItems) {
+            total += item.getProduct().getPrice() * item.getQuantity();
+        }
+		return total;
+        }
+}
+
+Productservice.java
+@Service
+public class Productservice {
+	@Autowired
+    private Productrepo productRepo;
+
+    public Product addProduct(Product product) {
+        return productRepo.save(product);
+    }
+	public List<Product> getAllProducts() {
+        return productRepo.findAll();
+    }
+    
+    public Product getProductById(Long id) {
+        Optional<Product> product = productRepo.findById(id);
+		if (product.isPresent()) {
+            return product.get();
+        } else {
+            throw new RuntimeException("Product not found");
+        }
+    }
+        
+     public String deleteProduct(Long id) {
+		Optional<Product> product = productRepo.findById(id);
+		if (product.isPresent()) {
+			productRepo.deleteById(id);
+				return "Product deleted successfully";
+		} else {
+            throw new RuntimeException("Product not found with ID: " + id);
+        }}}
+
+Userservice.java
+@Service
+public class Userservice {
+	@Autowired
+	private Userrepo userrepo;
+	public User registerUser(User user) {
+		Optional<User> existingUser = userrepo.findByEmail(user.getEmail());
+		if (existingUser.isPresent()) {
+            throw new RuntimeException("Email already registered");
+        }
+		return userrepo.save(user);}
+
+    public User loginUser(String email, String password) {
+		Optional<User> user = userrepo.findByEmail(email);
+		if (user.isPresent()) {
+			if (user.get().getPassword().equals(password)) {
+                return user.get();
+            } else {
+                throw new RuntimeException("Invalid password");
+            }
+
+        } else {
+            throw new RuntimeException("User not found");
+        }
+    }}
+
+Admincontroller.java
+@RestController
+@RequestMapping("/api/admin")
+public class Admincontroller {
+	@Autowired 
+	private Productservice productservice;
+	@PostMapping("/login")
+    public String adminLogin(@RequestParam String username,
+                             @RequestParam String password) {
+
+        if (username.equals("admin") && password.equals("admin123")) {
+            return "Admin Login Successful";
+        } else {
+            return "Invalid Admin Credentials";
+        }
+    }
+
+    @PostMapping("/add-product")
+    public Product addProduct(@RequestBody Product product) {
+        return productservice.addProduct(product);
+    }
+    
+    @DeleteMapping("/delete-product/{id}")
+    public String deleteProduct(@PathVariable Long id) {
+        return productservice.deleteProduct(id);
+    }}
+
+Usercontroller.java
+
+@RestController
+@RequestMapping("/api/users")
+public class Usercontroller {
+		@Autowired
+	    private Userservice userservice;
+		@PostMapping("/register")
+	    public User register(@RequestBody User user) {
+	        return userservice.registerUser(user);
+	    }
+		@PostMapping("/login")
+	    public User login(@RequestBody User user) {
+	        return userservice.loginUser(user.getEmail(), user.getPassword());
+	    }}
+Productcontroller.java
+
+@RestController
+@RequestMapping("/api/products")
+public class Productcontroller {
+	@Autowired 
+	private Productservice productservice;
+	@GetMapping
+    public List<Product> getAllProducts() {
+        return productservice.getAllProducts();
+    }
+	@GetMapping("/{id}")
+    public Product getProductById(@PathVariable Long id) {
+        return productservice.getProductById(id);
+    }}
+
+Cartcontroller.java
+
+@RestController
+@RequestMapping("/api/cart")
+public class Cartcontroller {
+	@Autowired
+    private Cartservice cartservice;
+	@PostMapping("/add")
+    public Cart addToCart(
+            @RequestParam Long userId,
+            @RequestParam Long productId,
+            @RequestParam int quantity) {
+
+        return cartservice.addToCart(userId, productId, quantity);}
+	@GetMapping("/{userId}")
+    public List<Cart> viewCart(@PathVariable Long userId) {
+        return cartservice.getCartByUser(userId);
+    }}
+
+paymentcontroller.java
+
+@RestController
+@RequestMapping("/api/payment")
+public class Paymentcontroller {
+	@Autowired
+	private Cartservice cartservice;
+	@GetMapping("/checkout/{userId}")
+    public double checkout(@PathVariable Long userId) {
+        return cartservice.checkout(userId);
+    }}
