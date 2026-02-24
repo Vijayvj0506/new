@@ -1,3 +1,20 @@
+model
+Cart.java
+User.java
+Product.java
+
+controller:
+admincontroller
+Cartcontroller
+paymentcontroller
+productcontroller
+usercontroller
+
+repo/service
+cartrepo
+product
+user
+
 User.java
 	
 	@Id
@@ -46,3 +63,18 @@ Product.java
 
     @OneToMany(mappedBy = "product")
     private List<Cart> carts;
+
+cartrepo.java
+@Repository
+public interface Cartrepo extends JpaRepository<Cart,Long> {
+	List<Cart> findByUser(User user);}
+
+productrepo.java
+@Repository
+public interface Productrepo extends JpaRepository<Product, Long> {
+}
+
+userrepo.java
+@Repository
+public interface Userrepo extends JpaRepository<User,Long> {
+	Optional<User> findByEmail(String email);}
