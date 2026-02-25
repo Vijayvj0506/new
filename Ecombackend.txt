@@ -78,6 +78,8 @@ userrepo.java
 @Repository
 public interface Userrepo extends JpaRepository<User,Long> {
 	Optional<User> findByEmail(String email);}
+add in product and user model (@JsonIgnore)
+@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
 
 cartservice.java
 @Service
