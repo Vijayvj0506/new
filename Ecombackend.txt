@@ -256,12 +256,39 @@ public class Cartcontroller {
 
 paymentcontroller.java
 
+
 @RestController
 @RequestMapping("/api/payment")
 public class Paymentcontroller {
 	@Autowired
 	private Cartservice cartservice;
+
+    private static final String KEY_ID = "rzp_test_SJaIubTFlNBweC";
+    private static final String KEY_SECRET = "ykVWRWLxSleazgvNJm9jRkfi";
+
 	@GetMapping("/checkout/{userId}")
     public double checkout(@PathVariable Long userId) {
         return cartservice.checkout(userId);
-    }}
+    }
+
+    @PostMapping("/create-order/{userId}")
+    public String createOrder(@PathVariable Long userId) throws RazorpayException {
+
+        double totalAmount = cartservice.checkout(userId);
+
+        RazorpayClient razorpay = new RazorpayClient(KEY_ID, KEY_SECRET);
+
+        JSONObject orderRequest = new JSONObject();
+        orderRequest.put("amount", (int)(totalAmount * 100)); // amount in paise
+        orderRequest.put("currency", "INR");
+        orderRequest.put("receipt", "txn_123456");
+
+        Order order = razorpay.orders.create(orderRequest);
+
+        return order.toString();
+    }
+
+}
+
+
+
